@@ -1,0 +1,10 @@
+Funkcje retriveMessages i BroadcastMessages musza brać jako argument id
+klientów do których maja przeslac wiadomosci
+
+Klienci musza byc zebrani razem w ArrayList ich interfejsow i kazdemu imieniu bedzie przyporzadkoane id
+Gdy wlacza sie nowe okno klienta zostaje ono od razu dodane do ArrayList,
+po kliknieciu register dopisane zostaje do jego id imie
+ ?? Czy kazdy klient powien miec liste innych klientow lokalnie, która aktualizowana bedzie metoda refreshClients
+
+
+ By kliknac SEND klient musi byc zarejestrowany, jesli nie to wyskakuje prompt
