@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class ChatClient extends UnicastRemoteObject implements ChatClientIF, Runnable {
@@ -16,11 +17,16 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientIF, Run
     private String name = null;
     JTextArea textArea;
     JTextField inputField;
+    JTextField nameTf;
+    JFrame clientFrame;
+    JTextArea activeUsers;
+    ArrayList<String> activeUsersArrayList;
+    int currentlyConnectedWith;  // id of client with whom this client is now connected
 
     protected ChatClient(String name, ChatServerIF chatServer) throws RemoteException {
-        this.name = name;
+        //this.name = name;
         this.chatServer = chatServer;
-        chatServer.registerChatClient(this);
+        //chatServer.registerChatClient(this);
     }
 
     @Override
@@ -30,11 +36,16 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientIF, Run
     }
 
     @Override
+    public String sendName() {
+        return name;
+    }
+
+    @Override
     public void run() {
         //
         //String message;
 
-        JFrame clientFrame = new JFrame(name + " frame");
+        clientFrame = new JFrame(name + " frame");
         clientFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         clientFrame.setSize(400,400);
         clientFrame.setLayout(new BorderLayout());
@@ -85,12 +96,37 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientIF, Run
         eastPanel.setLayout(myGridLayout);
         mainPanel.add(eastPanel,BorderLayout.EAST);
         //COMPONENTS
+        //LIST OF USERS - lista aktualnie zalogowanych uzytkowników
+        activeUsers = new JTextArea();
+        eastPanel.add(activeUsers);
+        try {
+            refreshActiveUsers();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+        //CONNECT BUTTON - used to connect with selected client from scrollable list of clients
         JButton connectButton = new JButton("CONNECT");
         eastPanel.add(connectButton);
-        JTextField nameTf = new JTextField("username");
+
+
+        //NAME TEXT FIELD
+        nameTf = new JTextField("Type your username");
         eastPanel.add(nameTf);
+
+        //REGISTER BUTTON - used to register current client instance as client with name from nameTf
         JButton  registerButton = new JButton("REGISTER");
         eastPanel.add(registerButton);
+        registerButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    registerButtonPressed();
+                } catch (RemoteException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
 
 
 
@@ -121,26 +157,44 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientIF, Run
             });
 
 
-//        while(true){
-//
-//
-//            try{
-//                chatServer.broadcastMessage(name + " : " + message);
-//            }
-//            catch (RemoteException e){
-//                e.printStackTrace();
-//                System.out.println("nie udalo sie");
-//            }
-//        }
-
-
-
+            while (true){
+                try {
+                    refreshActiveUsers();
+                    Thread.sleep(500);
+                } catch (RemoteException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
     }
 
     public void buttonPressed() throws RemoteException {
         String message;
-        message = inputField.getText();
-        inputField.setText("");
-        chatServer.broadcastMessage(name + " : " + message);
+        if(name==null){
+            JOptionPane.showMessageDialog(clientFrame, "By wysylac wiadomosci nalezy najpierw sie zalogowac!");
+        }
+        else{
+            message = inputField.getText();
+            inputField.setText("");
+            chatServer.broadcastMessage(name + " : " + message);
+        }
+
+    }
+    public void registerButtonPressed() throws RemoteException {
+        // setting current Client as client called nameTf.getText()
+        name = nameTf.getText();
+        //creating current client reference on server
+        chatServer.registerChatClient(this);
+        nameTf.setEditable(false);
+        JOptionPane.showMessageDialog(clientFrame, "Zarejestrowano uzytkownika");
+        refreshActiveUsers();
+
+    }
+
+    public void refreshActiveUsers() throws RemoteException {
+       activeUsersArrayList = chatServer.broadcastUsersList();
+       activeUsers.setText("");
+       for(String s: activeUsersArrayList){
+           activeUsers.append(s + "\n");
+       }
     }
 }

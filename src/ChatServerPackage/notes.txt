@@ -8,3 +8,18 @@ po kliknieciu register dopisane zostaje do jego id imie
 
 
  By kliknac SEND klient musi byc zarejestrowany, jesli nie to wyskakuje prompt
+
+ TODO:
+ - zmienic liste aktywnych klientow na rozwijana i wybieralną
+ - zmienic sposob wysylania wiadomosci, tak by wysylaly sie tlyko do osoby z ktora jest sie polaczonym
+ - dodac przyciski rozlacz, wyrejestruj
+ - UNREGISTER - usuwa z listy aktywnych imie i interfejs, czy trzeba zadbac o zmiane kolejnosci?
+        np jesli kazdy klient trzyma jako int tylko id osoby z ktora jest polaczony to id sie przesunie po wyrejestrownaiu
+        zmienia imie na NULL
+        odblokowuje pole do wpisania imienia (po kliknieciu register bedzie znwow zarejestrowany
+
+ A moze nalezy trzymac w tablicy rowniez boolean czy uzytkownik jest zarejestrowany i to sprawdzac
+ Ja nie jest to nie printowac do listy, ale tez nie usuwac zeby nie bylo problemu z kolejnoscia
+ - Unikalnosc imion? czy moga byc dwaj uzytkownicy z ta sama nazwa - TAK
+ - DISCONNECT
+ - interfejsy przechowywane jako HashMap klucz - imie, wartość - interface

@@ -10,7 +10,8 @@ import java.util.ArrayList;
 public class ChatServer extends UnicastRemoteObject implements ChatServerIF{
 
     //private static final long  serialVersionUID = 1L;
-    private ArrayList<ChatClientIF> chatClientsList;
+    ArrayList<ChatClientIF> chatClientsList;
+    ArrayList <String> listOfNames;
 
     protected ChatServer() throws RemoteException {
         chatClientsList = new ArrayList<ChatClientIF>();
@@ -20,6 +21,7 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF{
     @Override
     public synchronized void registerChatClient(ChatClientIF chatClient) throws RemoteException {
         this.chatClientsList.add(chatClient);
+        System.out.println("New Client registered");
     }
 
     public void broadcastMessage(String message) throws RemoteException{
@@ -31,20 +33,17 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF{
         }
     }
 
+    @Override
+    public ArrayList<String> broadcastUsersList() throws RemoteException {     // zwraca aktualna liste imion klientowi
+        generateListOfNames();
+        return listOfNames;
+    }
 
+    private void generateListOfNames() throws RemoteException {
+       listOfNames = new ArrayList<>();
+        for(ChatClientIF c: chatClientsList){
+            listOfNames.add(c.sendName()); // tworzy liste imion
+        }
+    }
 
-
-//    public static void main(String[] args) {
-//
-//        JFrame chatFrame = new JFrame("RMI CHAT - STANISLAW KURZYP");
-//        JPanel messagePanel = new JPanel();
-//        JButton sendButton = new JButton("SEND");
-//        messagePanel.add(sendButton);
-//        chatFrame.add(messagePanel);
-//        chatFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-//        chatFrame.setVisible(true);
-//        chatFrame.pack();
-//
-//
-//    }
 }
