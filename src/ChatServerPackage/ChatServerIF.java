@@ -10,6 +10,7 @@ import java.util.ArrayList;
 public interface ChatServerIF extends Remote {
 
     void registerChatClient (ChatClientIF chatClient) throws RemoteException;
+    void disconnectChatClient(String name) throws RemoteException;
     void broadcastMessage(String message) throws RemoteException;
     ArrayList<String> broadcastUsersList() throws RemoteException;
 

@@ -9,7 +9,7 @@ import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.Objects;
 
 public class ChatClient extends UnicastRemoteObject implements ChatClientIF, Runnable {
 
@@ -19,9 +19,11 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientIF, Run
     JTextField inputField;
     JTextField nameTf;
     JFrame clientFrame;
-    JTextArea activeUsers;
+    JComboBox <String> activeUsers;
+
     ArrayList<String> activeUsersArrayList;
-    int currentlyConnectedWith;  // id of client with whom this client is now connected
+    String currentlyConnectedWith;  // Name of client with whom this client is now connected
+    JTextArea textAreaCurrentlyChattingWith;
 
     protected ChatClient(String name, ChatServerIF chatServer) throws RemoteException {
         //this.name = name;
@@ -42,13 +44,12 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientIF, Run
 
     @Override
     public void run() {
-        //
-        //String message;
 
         clientFrame = new JFrame(name + " frame");
         clientFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         clientFrame.setSize(400,400);
         clientFrame.setLayout(new BorderLayout());
+        clientFrame.setVisible(true);
 
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
@@ -59,9 +60,13 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientIF, Run
         /*TEXT AREA PANEL */
         JPanel northPanel = new JPanel();
         northPanel.setBorder(BorderFactory.createEmptyBorder( 10,  10, 10, 10));
-        //northPanel.setLayout();
         mainPanel.add(northPanel,BorderLayout.WEST);
         //COMPONENTS
+
+        //TEXT FIELD - showing with who you are currently chatting
+        textAreaCurrentlyChattingWith = new JTextArea("Currently chatting with: " + currentlyConnectedWith );
+        northPanel.add(textAreaCurrentlyChattingWith);
+
         //TEXT AREA - incoming and sent messages
         textArea = new JTextArea("");
         textArea.setBounds(10,30, 200,200);
@@ -70,6 +75,8 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientIF, Run
         textArea.setHighlighter(null);
         textArea.setEditable(false);
         northPanel.add(textArea);
+
+        //---------------------------------//
 
         /*MESSAGE SENDING PANEL - TEXT FIELD AND SEND BUTTON*/
         JPanel southPanel = new JPanel();
@@ -87,17 +94,19 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientIF, Run
         sendBtn.setBounds(50,50,100,50);
         southPanel.add(sendBtn);
 
-
+        //----------------------------------------------------------------//
 
         /*LIST OF USERS, CONNECT BUTTON, NAME TEXT FIELD, REGISTER BUTTON*/
         JPanel eastPanel = new JPanel();
         eastPanel.setBorder(BorderFactory.createEmptyBorder( 10,  10, 10, 10));
-        GridLayout myGridLayout = new GridLayout(4,1);
+        GridLayout myGridLayout = new GridLayout(6,1);
         eastPanel.setLayout(myGridLayout);
         mainPanel.add(eastPanel,BorderLayout.EAST);
         //COMPONENTS
+
         //LIST OF USERS - lista aktualnie zalogowanych uzytkowników
-        activeUsers = new JTextArea();
+        //activeUsers = new JTextArea();
+        activeUsers = new JComboBox<String>();
         eastPanel.add(activeUsers);
         try {
             refreshActiveUsers();
@@ -108,7 +117,18 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientIF, Run
         //CONNECT BUTTON - used to connect with selected client from scrollable list of clients
         JButton connectButton = new JButton("CONNECT");
         eastPanel.add(connectButton);
+        connectButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                connectButtonPressed();
+                //TODO: WYLACZYC TEN PRZYCISK PO KLIKNIECIU REGISTER I WLACZYC PO KLIKNIECIU UNREGISTER
+            }
+        });
 
+        //DISCONNECT BUTTON - used to disconnect from chatting  with currently selected user
+        JButton disconnectButton = new JButton("DISCONNECT");
+        eastPanel.add(disconnectButton);
+        //TODO: actionListener for disconnecting
 
         //NAME TEXT FIELD
         nameTf = new JTextField("Type your username");
@@ -128,46 +148,39 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientIF, Run
             }
         });
 
-
-
-
-
-
-
-
-//        JButton registerBtn = new JButton("REGISTER");
-//        mainPanel.add(registerBtn,BorderLayout.EAST);
-//
-//        JTextField registerTf = new JTextField("Nickname");
-//        mainPanel.add(registerTf);
-
-
-        clientFrame.setVisible(true);
-
-
-            sendBtn.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    try {
-                        buttonPressed();
-                    } catch (RemoteException ex) {
-                        ex.printStackTrace();
-                    }
-                }
-            });
-
-
-            while (true){
+        //UNREGISTER BUTTON - used to unregister current client, it should clear all messages!
+        JButton unregisterButton = new JButton("UNREGISTER");
+        eastPanel.add(unregisterButton);
+        unregisterButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
                 try {
-                    refreshActiveUsers();
-                    Thread.sleep(500);
-                } catch (RemoteException | InterruptedException e) {
-                    e.printStackTrace();
+                    unregisterButtonPressed();
+                } catch (RemoteException ex) {
+                    ex.printStackTrace();
                 }
             }
+        });
+
+
+
+        sendBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    sendButtonPressed();
+                } catch (RemoteException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
     }
 
-    public void buttonPressed() throws RemoteException {
+
+
+
+        /*  */
+    public void sendButtonPressed() throws RemoteException {
         String message;
         if(name==null){
             JOptionPane.showMessageDialog(clientFrame, "By wysylac wiadomosci nalezy najpierw sie zalogowac!");
@@ -187,14 +200,41 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientIF, Run
         nameTf.setEditable(false);
         JOptionPane.showMessageDialog(clientFrame, "Zarejestrowano uzytkownika");
         refreshActiveUsers();
+        textArea.setText(""); // Clearing all old messages, just to be sure
 
+    }
+
+    public void connectButtonPressed(){
+        String selectedName = (String)activeUsers.getSelectedItem();
+        if(Objects.equals(selectedName, name)){
+            JOptionPane.showMessageDialog(clientFrame,"Wybrano wysylanie wiadomosci do samego siebie!");
+        }
+        if(!Objects.equals(selectedName, currentlyConnectedWith)){
+            // if clinet wants to connect to other user then he was already connceted, chat has to be cleared
+            textArea.setText("");
+        }
+        currentlyConnectedWith = selectedName;
+        System.out.println(currentlyConnectedWith);
     }
 
     public void refreshActiveUsers() throws RemoteException {
        activeUsersArrayList = chatServer.broadcastUsersList();
-       activeUsers.setText("");
+       activeUsers.removeAllItems();
+
        for(String s: activeUsersArrayList){
-           activeUsers.append(s + "\n");
+            activeUsers.addItem(s);
        }
+    }
+
+    public void unregisterButtonPressed() throws RemoteException {
+        //TODO: first it should disconnect with currentlyConnectedClient
+        chatServer.disconnectChatClient(name);
+        name = null;
+        nameTf.setEditable(false);
+        nameTf.setText("Type your username");
+        activeUsers.removeAllItems();
+
+        JOptionPane.showMessageDialog(clientFrame, "Wyrejestrowano uzytkownika");
+        //refreshActiveUsers();
     }
 }

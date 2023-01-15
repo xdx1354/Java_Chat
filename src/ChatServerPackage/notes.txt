@@ -22,4 +22,14 @@ po kliknieciu register dopisane zostaje do jego id imie
  Ja nie jest to nie printowac do listy, ale tez nie usuwac zeby nie bylo problemu z kolejnoscia
  - Unikalnosc imion? czy moga byc dwaj uzytkownicy z ta sama nazwa - TAK
  - DISCONNECT
+
+CONNECT WITH CLIENT:
+ - musi działac w dwie strony, wybrany klient nie moze byc wtedy z nimi polaczony
+ - u wybranego klienta powinno sie wtedy tez wywolac metode connect with client
+
+
+ DONE
  - interfejsy przechowywane jako HashMap klucz - imie, wartość - interface
+ - interface musi miec metode refresh która wywoływana będzie przez serwer zamiast w petli while u klienta
+                wywoływanie bedzie następowało w metoda addUser czyli po kazdym dodaniu uzytkownika odswiezy
+                liste uzytkowników

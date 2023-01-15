@@ -7,4 +7,5 @@ public interface ChatClientIF extends Remote {
 
     void  retrieveMessage(String message) throws RemoteException;
     String sendName()throws RemoteException;
+    void refreshActiveUsers() throws RemoteException;
 }
