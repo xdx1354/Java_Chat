@@ -1,6 +1,5 @@
 package ChatServerPackage;
 
-import ChatClientPackage.ChatClient;
 import ChatClientPackage.ChatClientIF;
 
 import java.rmi.Remote;
@@ -9,10 +8,13 @@ import java.util.ArrayList;
 
 public interface ChatServerIF extends Remote {
 
-    void registerChatClient (ChatClientIF chatClient) throws RemoteException;
-    void disconnectChatClient(String name) throws RemoteException;
-    void broadcastMessage(String message) throws RemoteException;
+    int registerChatClient (ChatClientIF chatClient) throws RemoteException;
+    void unregisterChatClient(String name) throws RemoteException;
+    void disconnectChatClient(String client1, String client2) throws RemoteException;
+    void broadcastMessage(String message, String client1, String client2) throws RemoteException;
     ArrayList<String> broadcastUsersList() throws RemoteException;
+    void connectChatClient(String client1, String client2) throws RemoteException;
+    int isClientFree(String name) throws RemoteException;
 
 
 }

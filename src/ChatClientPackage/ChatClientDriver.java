@@ -1,6 +1,5 @@
 package ChatClientPackage;
 
-import ChatServerPackage.ChatServer;
 import ChatServerPackage.ChatServerIF;
 
 import java.net.MalformedURLException;
@@ -14,7 +13,6 @@ public class ChatClientDriver {
 
         String chatServerURL = "rmi://localhost:1099/RMIChatServer";
         ChatServerIF chatServer = (ChatServerIF) Naming.lookup(chatServerURL);
-        System.out.println("HAAAALO");
-        new Thread(new ChatClient(args[0],chatServer)).start();
+        new Thread((new ChatClient2(chatServer))).start();
     }
 }
